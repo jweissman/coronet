@@ -6,6 +6,7 @@ module Coronet
         super(port, *args)
         @tcp = TransportMechanism::LengthPrefixedTcpTransport.new
       end
+      
       def serve(io)
         @tcp.write(@tcp.read(io), io)
       end

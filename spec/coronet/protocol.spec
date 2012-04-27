@@ -22,7 +22,7 @@ module Coronet
       xml = MessageFormat::XmlMessageFormat.new
       xml_via_tcp = Protocol.new(xml, tcp)
       
-      msg = { 'hello' => 'world' }
+      msg = { 'hello' => 'world', 'whats' => 'up' }
       xml_via_tcp.transmit(msg, 'localhost', 12345).should == msg
       
       echo.stop

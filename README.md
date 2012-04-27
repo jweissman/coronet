@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-Coronet requires the definition of message formats, transports, service entry/end-points and mediation rules. Once these are defined, you can construct 'service layers' which automatically mediate messages.
+Coronet requires the definition of message formats, transports, service entry/end-points and mediation patterns. Once these are defined, it is straightforward to construct a message-transformation and mediation service using Coronet.
 
 ### Message Formats
 
@@ -42,11 +42,6 @@ Eventually there should be mappers which can transform hash keys.
 		end
 	end
 
-
-### Transformation Rules
-
-*Transformation rules* adapt one message format to another. Eventually this may support
-manipulation/mapping of key names.
 
 ### Transport Mechanisms
 
@@ -75,27 +70,51 @@ being transformed, transported to remote endpoints, the responses gathered,
 transformation rules applied, and the initiating actor (client) being sent 
 the transformed response.
 
-## Example
+## Examples
 
-The following simple example should start the Coronet engine on localhost:10000,
-listening for XML requests via TCP, and mediate the requests to localhost:10001
-in YML over TCP.
+Specifying explicit constructors for clarity, here is perhaps the most verbose
+way to setup a mediation framework with Coronet. The example below starts a mediation service
+listening on $mediation_port for XML messages over binary-length-prefixed TCP,
+transforms these messages to YAML, and mediates them to a remote host listening
+at $host_port.
 
-	require 'coronet'
-	
-	tcp = Coronet::TransportMechanism::LengthPrefixedTcpTransport.new
-	xml = Coronet::MessageFormat::XmlMessageFormat.new
-	yml = Coronet::MessageFormat::YamlMessageFormat.new
-
-	mediator = Coronet::Mediator.new do
-	  local  xml, tcp, 10000
-	  remote yml, tcp, 'localhost', 10001        
+	class SimpleMediator < Mediator
+	  with_listener Listener.new($mediator_port, 
+	                    Protocol.new(
+	                        MessageFormat::XmlMessageFormat.new, 
+	                        TransportMechanism::LengthPrefixedTcpTransport.new))
+                        
+	  for_endpoint RemoteEndpoint.new('localhost', $host_port, 
+	                  Protocol.new(
+	                    MessageFormat::YamlMessageFormat.new, 
+	                    TransportMechanism::LengthPrefixedTcpTransport.new))
 	end
+	
+	# to launch the service, just call the class method 'start_listening'
+	SimpleMediator.start_listening
+	
+The following example makes fuller use of the built-in DSL, and is accordingly
+much less verbose. The same mediation service is created:
 
-	mediator.start
+	class SimpleMediatorUsingDSL < Mediator
+	  listener $mediator_port, xml_via_tcp
+	  endpoint 'localhost', $host_port, yaml_via_tcp
+	end
+	
+You can provide custom processing instructions to the mediation framework. For
+instance, you might want to log every request/response pattern to the database;
+or simply keep track of how many messages you've processed. Here is an example
+of utilizing these callbacks:
 
-
-
+	class SimpleMediatorWithCallbacks < SimpleMediatorUsingDSL
+	  preprocess  do |req|
+		# do something with request object 'req'
+	  end
+	
+	  postprocess do |req, rsp| 
+		# do something with request and response objects 'req' and 'rsp'
+	  end
+	end
 
 ## Contributing
 

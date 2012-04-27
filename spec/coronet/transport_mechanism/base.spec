@@ -12,11 +12,13 @@ module Coronet
     describe Base, "encapsulates transport-layer functionality" do
       it "supports interaction with remote services" do
         echo = Support::EchoServer.new(12345)
-        tcp  = LengthPrefixedTcpTransport.new# ('localhost', 12345)
+        tcp  = LengthPrefixedTcpTransport.new
         
         echo.start
         io   = tcp.open('localhost', 12345)
-        tcp.transmit("hello", io).should == 'hello'
+        msg = "data" *1250
+        # p msg
+        tcp.transmit(msg, io).should == msg
         echo.stop
       end   
     end

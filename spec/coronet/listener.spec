@@ -17,7 +17,6 @@ module Coronet
     
     module Echo
       def self.handle(request)
-        # puts "--- echo server handling request: #{request}"
         request
       end
     end
@@ -28,7 +27,8 @@ module Coronet
       xml = MessageFormat::XmlMessageFormat.new
       xml_via_tcp = Protocol.new(xml, tcp)
       
-      echo_listener = Listener.new(12345, xml_via_tcp, Echo.method(:handle))
+      echo_listener = Listener.new(12345, xml_via_tcp)
+      echo_listener.uses_mediator_class(Echo)
       echo_listener.start
       
       msg = { 'hello' => 'world' }

@@ -8,21 +8,25 @@ module Coronet
     class LengthPrefixedTcpTransport < Base
       attr_accessor :tcp_socket
       
-      def open(host, port)
-        TCPSocket.open(host, port)
-      end
+      # n.b., for four bytes, can just use 4/'N'
+      LENGTH_HEADER_BYTES = 2
+      LENGTH_HEADER_STORAGE_CLASS = "n"
+      
+      def open(host, port); TCPSocket.open(host, port); end
       
       def read(io)
-        length_header = io.read(2)
-        p length_header
-        length = length_header.unpack("S").first
+        length_header = io.read(LENGTH_HEADER_BYTES)
+        # p length_header
+        length = length_header.unpack(LENGTH_HEADER_STORAGE_CLASS).first
+        # puts "--- TCP READ #{length}"
+        
         io.read(length)
       end
       
       def write(data, io)
+        # puts "--- TCP WRITE #{data}"
         length = data.size
-        prefix = to_byte_array(length).pack("S")
-
+        prefix = [length].pack(LENGTH_HEADER_STORAGE_CLASS)
         io.print(prefix)
         io.print(data)
       end
@@ -30,17 +34,6 @@ module Coronet
       def close(io)
         io.close
       end
-      
-      private 
-        def to_byte_array(num)
-          result = Array.new
-          begin
-            result << (num & 0xff)
-            num >>= 8
-          end until (num == 0 || num == -1) && (result.last[7] == num[7])
-          result.reverse
-        end
-      
     end
   end
 end

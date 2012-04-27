@@ -9,21 +9,26 @@ module Coronet
     end
     
     def read(io)
-      packed = @transport_mechanism.read(io)
-      unpacked = @message_format.unpack(packed)
-      unpacked
+      # packed = 
+      # unpacked = 
+      @message_format.unpack(@transport_mechanism.read(io))
+      # unpacked
     end
     
     def write(data, io)
-      packed = @message_format.pack(data)
-      @transport_mechanism.write(packed, io)
+      @transport_mechanism.write(@message_format.pack(data), io)
     end
     
     def transmit(request, host, port)
+      # puts "=== opening connection to #{host}:#{port}"
       io = @transport_mechanism.open(host,port)
+      # puts "--- writing #{request} to #{host}:#{port}"
       write(request, io)
+      # puts "=== reading response from #{host}:#{port}"
       response = read(io)
+      # puts "--- closing socket to #{host}:#{port}"
       @transport_mechanism.close(io)
+      # puts "=== returning response #{response} from #{host}:#{port}"
       response
     end
   end

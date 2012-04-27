@@ -22,12 +22,12 @@ module Coronet
     
       it "should handle xml" do
         @xml.unpack(@xml_data).should == { 'hello' => 'world' }
-        @xml.pack(@xml.unpack(@xml_data)).should == @xml_data
+        @xml.pack(@xml.unpack(@xml_data), nil).should == @xml_data
       end
 
       it "should handle transforming yml to xml (and vice versa)" do
         @xml.unpack(@xml_data).should == @yml.unpack(@yml_data)
-        @xml.pack(@yml.unpack(@yml_data)).should == @xml_data
+        @xml.pack(@yml.unpack(@yml_data), nil).should == @xml_data
         @yml.pack(@xml.unpack(@xml_data)).should == @yml_data
       end
     end
